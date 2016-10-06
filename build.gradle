@@ -15,15 +15,14 @@ apply plugin: "java"
 apply plugin: "idea"
 apply plugin: 'maven'
 apply plugin: 'signing'
-apply plugin: 'com.github.johnrengelman.shadow'
+//apply plugin: 'com.github.johnrengelman.shadow'
 
 def shouldPublishLocally = System.getProperty('LOCAL_PUBLISH')
 URL localRepo = new File("${System.getProperty('user.home')}/.m2/repository").toURI().toURL()
 URL repoUrl = shouldPublishLocally ? localRepo : URI.create('https://oss.sonatype.org/service/local/staging/deploy/maven2').toURL()
 
 ext {
-    if (!project.hasProperty('sonatypeUrl')) sonatypeUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2'
-    if (!project.hasProperty('sonatypeUsername')) sonatypeUsername = ''
+    if (!project.hasProperty('sonatypeUser')) sonatypeUser = ''
     if (!project.hasProperty('sonatypePassword')) sonatypePassword = ''
 }
 
@@ -66,7 +65,7 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 artifacts {
     archives sourcesJar
     archives javadocJar
-    archives shadowJar
+//    archives shadowJar
 }
 
 def projectPom = {
@@ -111,7 +110,7 @@ uploadArchives {
         beforeDeployment { deployment -> signing.signPom(deployment) }
 
         repository(url: repoUrl) {
-            authentication(userName: sonatypeUsername, password: sonatypePassword)
+            authentication(userName: sonatypeUser, password: sonatypePassword)
         }
 
         pom.project(projectPom)
@@ -125,7 +124,7 @@ task addGitTag << {
     }
 }
 
-shadowJar.mustRunAfter jar
+//shadowJar.mustRunAfter jar
 
 task release {
     dependsOn clean, jar, signArchives, uploadArchives, addGitTag
