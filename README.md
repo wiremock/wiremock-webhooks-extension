@@ -13,7 +13,7 @@ Add the following to your POM:
 <dependency>
     <groupId>com.github.tomakehurst</groupId>
     <artifactId>wiremock</artifactId>
-    <version>2.2.1</version>
+    <version>2.15.0</version>
     <scope>test</test>
 </dependency>
 <dependency>

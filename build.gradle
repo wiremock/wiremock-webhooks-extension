@@ -42,7 +42,7 @@ repositories {
 }
 
 def versions = [
-        wiremock: '2.2.1'
+        wiremock: '2.15.0'
 ]
 
 dependencies {
