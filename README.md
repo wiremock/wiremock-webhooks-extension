@@ -13,7 +13,7 @@ Add the following to your POM:
 <dependency>
     <groupId>com.github.tomakehurst</groupId>
     <artifactId>wiremock</artifactId>
-    <version>2.2.1</version>
+    <version>2.15.0</version>
     <scope>test</test>
 </dependency>
 <dependency>
@@ -30,18 +30,17 @@ Add the following to your dependencies:
 
 
 ```groovy
-
 testCompile 'com.github.tomakehurst:wiremock:2.2.1'
 testCompile 'org.wiremock:wiremock-webhooks-extension:0.0.1'
 ```
 
 ## Using in your project
 
-When constructing the WireMock JUnit rule or server, add a `Webhooks` instance as an extension:
+### Java
 
+When constructing the WireMock JUnit rule or server, add a `Webhooks` instance as an extension:
  
 ```java
-
 @Rule
 public WireMockRule rule = new WireMockRule(
     options()
@@ -53,17 +52,56 @@ Then use the DSL provided by the extension to configure webhooks to respond when
 
 
 ```java
-
 import static org.wiremock.webhooks.Webhooks.webhook;
 
 ...
 
 rule.stubFor(post(urlPathEqualTo("/something-async"))
-        .willReturn(aResponse().withStatus(200))
-        .withPostServeAction("webhook", webhook()
-            .withMethod(POST)
-            .withUrl("http://localhost:" + targetServer.port() + "/callback")
-            .withHeader("Content-Type", "application/json")
-            .withBody("{ \"result\": \"SUCCESS\" }"))
-    );
+    .willReturn(aResponse().withStatus(200))
+    .withPostServeAction("webhook", webhook()
+        .withMethod(POST)
+        .withUrl("http://localhost:" + targetServer.port() + "/callback")
+        .withHeader("Content-Type", "application/json")
+        .withBody("{ \"result\": \"SUCCESS\" }"))
+);
+```
+
+### JSON
+
+You can also use JSON to configure webhooks:
+
+```json
+{
+  "request" : {
+    "urlPath" : "/something-async",
+    "method" : "POST"
+  },
+  "response" : {
+    "status" : 200
+  },
+  "postServeActions" : {
+    "webhook" : {
+      "headers" : {
+        "Content-Type" : "application/json"
+      },
+      "method" : "POST",
+      "body" : "{ \"result\": \"SUCCESS\" }",
+      "url" : "http://localhost:56299/callback"
+    }
+  }
+}
+```
+
+You can also get the JSON representation of something produced by the DSL:
+
+```java
+System.out.println(Json.write(post(urlPathEqualTo("/something"))
+    .willReturn(aResponse().withStatus(200))
+    .withPostServeAction("webhook", webhook()
+        .withMethod(POST)
+        .withUrl("http://localhost:" + targetServer.port() + "/callback")
+        .withHeader("Content-Type", "application/json")
+        .withBody("{ \"result\": \"SUCCESS\" }")).build()
+    )
+);
 ```
