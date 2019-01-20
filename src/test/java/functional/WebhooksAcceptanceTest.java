@@ -1,31 +1,45 @@
 package functional;
 
-import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.http.Request;
-import com.github.tomakehurst.wiremock.http.RequestListener;
-import com.github.tomakehurst.wiremock.http.Response;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import org.apache.http.entity.StringEntity;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.wiremock.webhooks.Webhooks;
-import testsupport.TestNotifier;
-import testsupport.WireMockTestClient;
-
-import java.util.concurrent.CountDownLatch;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.reset;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static com.github.tomakehurst.wiremock.http.RequestMethod.GET;
 import static com.github.tomakehurst.wiremock.http.RequestMethod.POST;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.http.entity.ContentType.TEXT_PLAIN;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.wiremock.webhooks.Webhooks.webhook;
+
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.http.Request;
+import com.github.tomakehurst.wiremock.http.RequestListener;
+import com.github.tomakehurst.wiremock.http.Response;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
+import java.util.concurrent.CountDownLatch;
+import org.apache.http.entity.StringEntity;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.wiremock.webhooks.WebhookDefinition;
+import org.wiremock.webhooks.Webhooks;
+import org.wiremock.webhooks.interceptors.WebhookInterceptor;
+import testsupport.TestNotifier;
+import testsupport.WireMockTestClient;
 
 public class WebhooksAcceptanceTest {
 
@@ -33,7 +47,10 @@ public class WebhooksAcceptanceTest {
     public WireMockRule targetServer = new WireMockRule(options().dynamicPort());
 
     CountDownLatch latch;
-    Webhooks webhooks = new Webhooks();
+
+    Webhooks webhooks = new Webhooks()
+        .addInterceptor(new ConstantHttpHeaderWebhookInterceptor());
+
     TestNotifier notifier = new TestNotifier();
     WireMockTestClient client;
 
@@ -44,8 +61,18 @@ public class WebhooksAcceptanceTest {
             .notifier(notifier)
             .extensions(webhooks));
 
+    static class ConstantHttpHeaderWebhookInterceptor implements WebhookInterceptor {
 
-    @Before
+      public static final String key = "X-customer-header";
+      public static final String value = "foo";
+
+      @Override
+      public WebhookDefinition intercept(ServeEvent serveEvent, WebhookDefinition webhookDefinition) {
+        return webhookDefinition.withHeader(key, value);
+      }
+    }
+
+  @Before
     public void init() {
         targetServer.addMockServiceRequestListener(new RequestListener() {
             @Override
@@ -111,7 +138,9 @@ public class WebhooksAcceptanceTest {
 
         waitForRequestToTargetServer();
 
-        verify(1, getRequestedFor(urlEqualTo("/callback")));
+        verify(1, getRequestedFor(urlEqualTo("/callback"))
+            .withHeader(ConstantHttpHeaderWebhookInterceptor.key,
+                equalTo(ConstantHttpHeaderWebhookInterceptor.value)));
     }
 
     private void waitForRequestToTargetServer() throws Exception {
