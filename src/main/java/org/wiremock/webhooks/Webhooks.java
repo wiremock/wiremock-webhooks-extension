@@ -43,11 +43,11 @@ public class Webhooks extends PostServeAction {
     }
 
     public List<WebhookInterceptor> getInterceptors(){
-        return interceptors;
+        return ImmutableList.copyOf(interceptors);
     }
 
     public Webhooks setInterceptors(List<WebhookInterceptor> interceptors){
-        this.interceptors = interceptors;
+        this.interceptors = new ArrayList<>(interceptors);
         return this;
     }
 

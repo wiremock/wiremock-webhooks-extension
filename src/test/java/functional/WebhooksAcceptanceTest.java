@@ -29,15 +29,13 @@ import com.github.tomakehurst.wiremock.http.Request;
 import com.github.tomakehurst.wiremock.http.RequestListener;
 import com.github.tomakehurst.wiremock.http.Response;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import java.util.concurrent.CountDownLatch;
 import org.apache.http.entity.StringEntity;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.wiremock.webhooks.WebhookDefinition;
 import org.wiremock.webhooks.Webhooks;
-import org.wiremock.webhooks.interceptors.WebhookInterceptor;
+import testsupport.ConstantHttpHeaderWebhookInterceptor;
 import testsupport.TestNotifier;
 import testsupport.WireMockTestClient;
 
@@ -60,17 +58,6 @@ public class WebhooksAcceptanceTest {
             .dynamicPort()
             .notifier(notifier)
             .extensions(webhooks));
-
-    static class ConstantHttpHeaderWebhookInterceptor implements WebhookInterceptor {
-
-      public static final String key = "X-customer-header";
-      public static final String value = "foo";
-
-      @Override
-      public WebhookDefinition intercept(ServeEvent serveEvent, WebhookDefinition webhookDefinition) {
-        return webhookDefinition.withHeader(key, value);
-      }
-    }
 
   @Before
     public void init() {
