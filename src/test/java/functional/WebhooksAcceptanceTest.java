@@ -35,7 +35,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.wiremock.webhooks.Webhooks;
-import testsupport.ConstantHttpHeaderWebhookInterceptor;
+import testsupport.ConstantHttpHeaderWebhookTransformer;
 import testsupport.TestNotifier;
 import testsupport.WireMockTestClient;
 
@@ -46,8 +46,9 @@ public class WebhooksAcceptanceTest {
 
     CountDownLatch latch;
 
-    Webhooks webhooks = new Webhooks()
-        .addInterceptor(new ConstantHttpHeaderWebhookInterceptor());
+    Webhooks webhooks = new Webhooks(
+        new ConstantHttpHeaderWebhookTransformer()
+    );
 
     TestNotifier notifier = new TestNotifier();
     WireMockTestClient client;
@@ -59,7 +60,7 @@ public class WebhooksAcceptanceTest {
             .notifier(notifier)
             .extensions(webhooks));
 
-  @Before
+    @Before
     public void init() {
         targetServer.addMockServiceRequestListener(new RequestListener() {
             @Override
@@ -126,8 +127,8 @@ public class WebhooksAcceptanceTest {
         waitForRequestToTargetServer();
 
         verify(1, getRequestedFor(urlEqualTo("/callback"))
-            .withHeader(ConstantHttpHeaderWebhookInterceptor.key,
-                equalTo(ConstantHttpHeaderWebhookInterceptor.value)));
+            .withHeader(ConstantHttpHeaderWebhookTransformer.key,
+                equalTo(ConstantHttpHeaderWebhookTransformer.value)));
     }
 
     private void waitForRequestToTargetServer() throws Exception {

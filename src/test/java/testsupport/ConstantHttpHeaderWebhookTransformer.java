@@ -3,9 +3,9 @@ package testsupport;
 
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import org.wiremock.webhooks.WebhookDefinition;
-import org.wiremock.webhooks.interceptors.WebhookInterceptor;
+import org.wiremock.webhooks.interceptors.WebhookTransformer;
 
-public class ConstantHttpHeaderWebhookInterceptor implements WebhookInterceptor {
+public class ConstantHttpHeaderWebhookTransformer implements WebhookTransformer {
 
   public static final String key = "X-customer-header";
   public static final String value = "foo";

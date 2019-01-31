@@ -15,6 +15,7 @@ import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import com.google.common.collect.ImmutableList;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -24,31 +25,29 @@ import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.util.EntityUtils;
-import org.wiremock.webhooks.interceptors.WebhookInterceptor;
+import org.wiremock.webhooks.interceptors.WebhookTransformer;
 
 public class Webhooks extends PostServeAction {
 
     private final ScheduledExecutorService scheduler;
     private final HttpClient httpClient;
-    private List<WebhookInterceptor> interceptors = new ArrayList<>();
+    private List<WebhookTransformer> interceptors = new ArrayList<>();
+
+    private Webhooks(ScheduledExecutorService scheduler, HttpClient httpClient,
+        List<WebhookTransformer> interceptors) {
+      this.scheduler = scheduler;
+      this.httpClient = httpClient;
+      this.interceptors = interceptors;
+    }
 
     public Webhooks() {
-        scheduler = Executors.newScheduledThreadPool(10);
-        httpClient = HttpClientFactory.createClient();
+      this(Executors.newScheduledThreadPool(10), HttpClientFactory.createClient(),
+          new ArrayList<WebhookTransformer>());
     }
 
-    public Webhooks addInterceptor(WebhookInterceptor webhookInterceptor){
-        interceptors.add(webhookInterceptor);
-        return this;
-    }
-
-    public List<WebhookInterceptor> getInterceptors(){
-        return ImmutableList.copyOf(interceptors);
-    }
-
-    public Webhooks setInterceptors(List<WebhookInterceptor> interceptors){
-        this.interceptors = new ArrayList<>(interceptors);
-        return this;
+    public Webhooks(WebhookTransformer... interceptors) {
+      this(Executors.newScheduledThreadPool(10), HttpClientFactory.createClient(),
+          Arrays.asList(interceptors));
     }
 
     @Override
@@ -60,7 +59,7 @@ public class Webhooks extends PostServeAction {
     public void doAction(ServeEvent serveEvent, Admin admin, Parameters parameters) {
         final WebhookDefinition initialDefinition = parameters.as(WebhookDefinition.class);
         final Notifier notifier = notifier();
-        final List<WebhookInterceptor> runnableInterceptors = ImmutableList.copyOf(interceptors);
+        final List<WebhookTransformer> runnableInterceptors = ImmutableList.copyOf(interceptors);
         final ServeEvent servedEvent = serveEvent;
 
         scheduler.schedule(
@@ -68,7 +67,7 @@ public class Webhooks extends PostServeAction {
                 @Override
                 public void run() {
                     WebhookDefinition definition = initialDefinition;
-                    for(WebhookInterceptor interceptor : runnableInterceptors) {
+                    for(WebhookTransformer interceptor : runnableInterceptors) {
                         definition = interceptor.intercept(servedEvent, definition);
                     }
                     HttpUriRequest request = buildRequest(definition);
