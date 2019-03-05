@@ -27,7 +27,7 @@ ext {
 }
 
 group 'org.wiremock'
-version '0.0.1'
+version '1.0.1'
 
 task wrapper(type: Wrapper) {
     gradleVersion = '3.1'
