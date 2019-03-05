@@ -13,13 +13,13 @@ Add the following to your POM:
 <dependency>
     <groupId>com.github.tomakehurst</groupId>
     <artifactId>wiremock</artifactId>
-    <version>2.15.0</version>
+    <version>2.21.0</version>
     <scope>test</test>
 </dependency>
 <dependency>
     <groupId>org.wiremock</groupId>
     <artifactId>wiremock-webhooks-extension</artifactId>
-    <version>0.0.1</version>
+    <version>1.0.1</version>
     <scope>test</test>
 </dependency>
 ```
@@ -30,8 +30,8 @@ Add the following to your dependencies:
 
 
 ```groovy
-testCompile 'com.github.tomakehurst:wiremock:2.2.1'
-testCompile 'org.wiremock:wiremock-webhooks-extension:0.0.1'
+testCompile 'com.github.tomakehurst:wiremock:2.21.0'
+testCompile 'org.wiremock:wiremock-webhooks-extension:1.0.2'
 ```
 
 ## Using in your project
@@ -105,3 +105,25 @@ System.out.println(Json.write(post(urlPathEqualTo("/something"))
     )
 );
 ```
+
+## Customising the webhook with a transformer
+
+If you need to dynamically modify the webhook HTTP request before it is sent e.g. to add an authentication token or copy values from the original request,
+you can register one or more instances of `WebhookTransformer` when you construct the extension.
+
+```java
+public class AddAuthHeaderWebhookTransformer implements WebhookTransformer {
+
+  @Override
+  public WebhookDefinition transform(ServeEvent serveEvent, WebhookDefinition webhookDefinition) {
+    return webhookDefinition.withHeader("Authorization", "Token abc123");
+  }
+}
+
+@Rule
+public WireMockRule rule = new WireMockRule(
+    options()
+        .extensions(new Webhooks(new AddAuthHeaderWebhookTransformer())));
+```
+
+    
