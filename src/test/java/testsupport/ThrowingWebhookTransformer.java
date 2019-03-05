@@ -7,7 +7,7 @@ import org.wiremock.webhooks.interceptors.WebhookTransformer;
 public class ThrowingWebhookTransformer implements WebhookTransformer {
 
   @Override
-  public WebhookDefinition intercept(ServeEvent serveEvent, WebhookDefinition webhookDefinition) {
+  public WebhookDefinition transform(ServeEvent serveEvent, WebhookDefinition webhookDefinition) {
     throw new RuntimeException("oh no");
   }
 }

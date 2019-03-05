@@ -11,7 +11,7 @@ public class ConstantHttpHeaderWebhookTransformer implements WebhookTransformer 
   public static final String value = "foo";
 
   @Override
-  public WebhookDefinition intercept(ServeEvent serveEvent, WebhookDefinition webhookDefinition) {
+  public WebhookDefinition transform(ServeEvent serveEvent, WebhookDefinition webhookDefinition) {
     return webhookDefinition.withHeader(key, value);
   }
 }

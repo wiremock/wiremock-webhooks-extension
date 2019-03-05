@@ -5,5 +5,5 @@ import org.wiremock.webhooks.WebhookDefinition;
 
 public interface WebhookTransformer {
 
-  WebhookDefinition intercept(ServeEvent serveEvent, WebhookDefinition webhookDefinition);
+  WebhookDefinition transform(ServeEvent serveEvent, WebhookDefinition webhookDefinition);
 }

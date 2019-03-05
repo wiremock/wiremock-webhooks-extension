@@ -99,7 +99,7 @@ public class WebhooksAcceptanceTest {
 
         waitForRequestToTargetServer();
 
-        verify(1, postRequestedFor(urlEqualTo("/callback"))
+        targetServer.verify(1, postRequestedFor(urlEqualTo("/callback"))
             .withHeader("Content-Type", equalTo("application/json"))
             .withRequestBody(equalToJson("{ \"result\": \"SUCCESS\" }"))
         );
@@ -112,7 +112,7 @@ public class WebhooksAcceptanceTest {
     }
 
     @Test
-    public void firesMinimalWebhook() throws Exception {
+    public void firesMinimalWebhookWithTransformerApplied() throws Exception {
         rule.stubFor(post(urlPathEqualTo("/something-async"))
             .willReturn(aResponse().withStatus(200))
             .withPostServeAction("webhook", webhook()
