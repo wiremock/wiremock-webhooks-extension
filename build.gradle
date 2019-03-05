@@ -39,10 +39,11 @@ sourceCompatibility = 1.7
 
 repositories {
     mavenCentral()
+    mavenLocal()
 }
 
 def versions = [
-        wiremock: '2.15.0'
+        wiremock: '2.21.0'
 ]
 
 dependencies {
