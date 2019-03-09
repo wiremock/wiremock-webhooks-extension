@@ -19,7 +19,7 @@ Add the following to your POM:
 <dependency>
     <groupId>org.wiremock</groupId>
     <artifactId>wiremock-webhooks-extension</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.0</version>
     <scope>test</test>
 </dependency>
 ```
