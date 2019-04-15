@@ -31,7 +31,7 @@ Add the following to your dependencies:
 
 ```groovy
 testCompile 'com.github.tomakehurst:wiremock:2.21.0'
-testCompile 'org.wiremock:wiremock-webhooks-extension:1.0.2'
+testCompile 'org.wiremock:wiremock-webhooks-extension:1.0.0'
 ```
 
 ## Using in your project
