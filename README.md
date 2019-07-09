@@ -14,13 +14,13 @@ Add the following to your POM:
     <groupId>com.github.tomakehurst</groupId>
     <artifactId>wiremock</artifactId>
     <version>2.21.0</version>
-    <scope>test</test>
+    <scope>test</scope>
 </dependency>
 <dependency>
     <groupId>org.wiremock</groupId>
     <artifactId>wiremock-webhooks-extension</artifactId>
     <version>1.0.0</version>
-    <scope>test</test>
+    <scope>test</scope>
 </dependency>
 ```
 
