@@ -7,12 +7,12 @@ import com.github.tomakehurst.wiremock.extension.PostServeAction;
 import com.github.tomakehurst.wiremock.http.HttpClientFactory;
 import com.github.tomakehurst.wiremock.http.HttpHeader;
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.util.EntityUtils;
+import wiremock.org.apache.http.HttpResponse;
+import wiremock.org.apache.http.client.HttpClient;
+import wiremock.org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
+import wiremock.org.apache.http.client.methods.HttpUriRequest;
+import wiremock.org.apache.http.entity.ByteArrayEntity;
+import wiremock.org.apache.http.util.EntityUtils;
 import org.wiremock.webhooks.interceptors.WebhookTransformer;
 
 import java.io.IOException;

@@ -47,7 +47,13 @@ def versions = [
 ]
 
 dependencies {
-    compile "com.github.tomakehurst:wiremock:${versions.wiremock}"
+    compile "com.github.tomakehurst:wiremock-standalone:${versions.wiremock}"
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.9.8'
+    compile group: 'com.google.guava', name: 'guava', version: '20.0'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.9.8'
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.7'
+
+
 
     testCompile 'junit:junit:4.12'
     testCompile "org.hamcrest:hamcrest-all:1.3"

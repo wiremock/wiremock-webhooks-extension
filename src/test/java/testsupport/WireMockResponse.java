@@ -17,8 +17,8 @@ package testsupport;
 
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Multimap;
-import org.apache.http.Header;
-import org.apache.http.HttpResponse;
+import wiremock.org.apache.http.Header;
+import wiremock.org.apache.http.HttpResponse;
 
 import java.nio.charset.Charset;
 
