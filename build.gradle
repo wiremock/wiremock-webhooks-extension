@@ -27,7 +27,7 @@ ext {
 }
 
 group 'org.wiremock'
-version '1.0.0'
+version '1.1.0'
 
 task wrapper(type: Wrapper) {
     gradleVersion = '3.1'
@@ -43,7 +43,7 @@ repositories {
 }
 
 def versions = [
-        wiremock: '2.21.0'
+        wiremock: '2.26.0'
 ]
 
 dependencies {
