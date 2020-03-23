@@ -27,37 +27,29 @@ import static com.github.tomakehurst.wiremock.common.LocalNotifier.notifier;
 import static com.github.tomakehurst.wiremock.http.HttpClientFactory.getHttpRequestFor;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
-/**
- * Deprecated in favor of {@link WebhooksExtension} which takes into account multiple webhook events off of a single
- * event.
- */
-@Deprecated
-public class Webhooks extends PostServeAction {
+public class WebhooksExtension extends PostServeAction {
 
     private final ScheduledExecutorService scheduler;
     private final HttpClient httpClient;
     private final List<WebhookTransformer> transformers;
 
-    private Webhooks(
-            ScheduledExecutorService scheduler,
-            HttpClient httpClient,
-            List<WebhookTransformer> transformers) {
+    private WebhooksExtension(ScheduledExecutorService scheduler, HttpClient httpClient, List<WebhookTransformer> transformers) {
         this.scheduler = scheduler;
         this.httpClient = httpClient;
         this.transformers = transformers;
     }
 
-    public Webhooks() {
-      this(Executors.newScheduledThreadPool(10), HttpClientFactory.createClient(), new ArrayList<WebhookTransformer>());
+    public WebhooksExtension() {
+        this(Executors.newScheduledThreadPool(10), HttpClientFactory.createClient(), new ArrayList<WebhookTransformer>());
     }
 
-    public Webhooks(WebhookTransformer... transformers) {
-      this(Executors.newScheduledThreadPool(10), HttpClientFactory.createClient(), Arrays.asList(transformers));
+    public WebhooksExtension(WebhookTransformer... globalTransformers) {
+        this(Executors.newScheduledThreadPool(10), HttpClientFactory.createClient(), Arrays.asList(globalTransformers));
     }
 
     @Override
     public String getName() {
-        return "webhook";
+        return "webhooks";
     }
 
     @Override
@@ -65,32 +57,34 @@ public class Webhooks extends PostServeAction {
         final Notifier notifier = notifier();
 
         scheduler.schedule(
-            new Runnable() {
-                @Override
-                public void run() {
-                    WebhookDefinition definition = parameters.as(WebhookDefinition.class);
-                    for (WebhookTransformer transformer: transformers) {
-                        definition = transformer.transform(serveEvent, definition);
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        WebhookDefinitionContainer hooks = parameters.as(WebhookDefinitionContainer.class);
+                        for (WebhookDefinition definition : hooks.getWebhooks()) {
+                            for (WebhookTransformer transformer : transformers) {
+                                definition = transformer.transform(serveEvent, definition);
+                            }
+                            final WebhookDefinition finalDefinition = definition;
+                            HttpUriRequest request = buildRequest(finalDefinition);
+                            try {
+                                HttpResponse response = httpClient.execute(request);
+                                notifier.info(
+                                        String.format("Webhook %s request to %s returned status %s\n\n%s",
+                                                finalDefinition.getMethod(),
+                                                finalDefinition.getUrl(),
+                                                response.getStatusLine(),
+                                                EntityUtils.toString(response.getEntity())
+                                        )
+                                );
+                            } catch (IOException e) {
+                                throwUnchecked(e);
+                            }
+                        }
                     }
-                    HttpUriRequest request = buildRequest(definition);
-
-                    try {
-                        HttpResponse response = httpClient.execute(request);
-                        notifier.info(
-                            String.format("Webhook %s request to %s returned status %s\n\n%s",
-                                definition.getMethod(),
-                                definition.getUrl(),
-                                response.getStatusLine(),
-                                EntityUtils.toString(response.getEntity())
-                            )
-                        );
-                    } catch (IOException e) {
-                        throwUnchecked(e);
-                    }
-                }
-            },
-            0L,
-            SECONDS
+                },
+                0L,
+                SECONDS
         );
     }
 
@@ -112,13 +106,11 @@ public class Webhooks extends PostServeAction {
         return request;
     }
 
-    /**
-     * Deprecated in favor of {@link WebhooksExtension#aWebhook()}
-     *
-     * @return
-     */
-    @Deprecated
-    public static WebhookDefinition webhook() {
+    public static WebhookDefinition aWebhook() {
         return new WebhookDefinition();
+    }
+
+    public static WebhookDefinitionBuilder webhooks() {
+        return new WebhookDefinitionBuilder();
     }
 }
