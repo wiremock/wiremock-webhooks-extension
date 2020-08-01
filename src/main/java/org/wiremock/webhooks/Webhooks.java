@@ -9,9 +9,11 @@ import com.github.tomakehurst.wiremock.http.HttpHeader;
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.wiremock.webhooks.interceptors.WebhookTransformer;
 
@@ -30,12 +32,12 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 public class Webhooks extends PostServeAction {
 
     private final ScheduledExecutorService scheduler;
-    private final HttpClient httpClient;
+    private final CloseableHttpClient httpClient;
     private final List<WebhookTransformer> transformers;
 
     private Webhooks(
             ScheduledExecutorService scheduler,
-            HttpClient httpClient,
+            CloseableHttpClient httpClient,
             List<WebhookTransformer> transformers) {
       this.scheduler = scheduler;
       this.httpClient = httpClient;
@@ -69,8 +71,7 @@ public class Webhooks extends PostServeAction {
                     }
                     HttpUriRequest request = buildRequest(definition);
 
-                    try {
-                        HttpResponse response = httpClient.execute(request);
+                    try (CloseableHttpResponse response = httpClient.execute(request)) {
                         notifier.info(
                             String.format("Webhook %s request to %s returned status %s\n\n%s",
                                 definition.getMethod(),
@@ -80,7 +81,7 @@ public class Webhooks extends PostServeAction {
                             )
                         );
                     } catch (IOException e) {
-                        throwUnchecked(e);
+                        notifier().error(String.format("Failed to fire webhook %s %s", definition.getMethod(), definition.getUrl()), e);
                     }
                 }
             },
