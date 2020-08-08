@@ -21,11 +21,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static com.github.tomakehurst.wiremock.common.Exceptions.throwUnchecked;
 import static com.github.tomakehurst.wiremock.common.LocalNotifier.notifier;
 import static com.github.tomakehurst.wiremock.http.HttpClientFactory.getHttpRequestFor;
-import static java.util.concurrent.TimeUnit.SECONDS;
 
 public class Webhooks extends PostServeAction {
 
@@ -58,23 +58,23 @@ public class Webhooks extends PostServeAction {
     @Override
     public void doAction(final ServeEvent serveEvent, final Admin admin, final Parameters parameters) {
         final Notifier notifier = notifier();
-
+        final WebhookDefinition[] definitions = {parameters.as(WebhookDefinition.class)};
+        WebhookDefinition definition = definitions[0];
         scheduler.schedule(
             new Runnable() {
                 @Override
                 public void run() {
-                    WebhookDefinition definition = parameters.as(WebhookDefinition.class);
                     for (WebhookTransformer transformer: transformers) {
-                        definition = transformer.transform(serveEvent, definition);
+                        definitions[0] = transformer.transform(serveEvent, definitions[0]);
                     }
-                    HttpUriRequest request = buildRequest(definition);
+                    HttpUriRequest request = buildRequest(definitions[0]);
 
                     try {
                         HttpResponse response = httpClient.execute(request);
                         notifier.info(
                             String.format("Webhook %s request to %s returned status %s\n\n%s",
-                                definition.getMethod(),
-                                definition.getUrl(),
+                                definitions[0].getMethod(),
+                                definitions[0].getUrl(),
                                 response.getStatusLine(),
                                 EntityUtils.toString(response.getEntity())
                             )
@@ -84,8 +84,8 @@ public class Webhooks extends PostServeAction {
                     }
                 }
             },
-            0L,
-            SECONDS
+            definition.getDelay(),
+            TimeUnit.MILLISECONDS
         );
     }
 
