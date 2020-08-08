@@ -86,7 +86,8 @@ You can also use JSON to configure webhooks:
       },
       "method" : "POST",
       "body" : "{ \"result\": \"SUCCESS\" }",
-      "url" : "http://localhost:56299/callback"
+      "url" : "http://localhost:56299/callback",
+      "delay" : 1000
     }
   }
 }
@@ -101,7 +102,9 @@ System.out.println(Json.write(post(urlPathEqualTo("/something"))
         .withMethod(POST)
         .withUrl("http://localhost:" + targetServer.port() + "/callback")
         .withHeader("Content-Type", "application/json")
-        .withBody("{ \"result\": \"SUCCESS\" }")).build()
+        .withBody("{ \"result\": \"SUCCESS\" }"))
+        .withDelay(1_000)  // in milliseconds
+        .build()
     )
 );
 ```

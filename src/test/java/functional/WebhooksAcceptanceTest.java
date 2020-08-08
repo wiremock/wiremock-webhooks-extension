@@ -131,6 +131,27 @@ public class WebhooksAcceptanceTest {
                 equalTo(ConstantHttpHeaderWebhookTransformer.value)));
     }
 
+    @Test
+    public void firesMinimalWebhookWithDelay() throws Exception {
+        rule.stubFor(post(urlPathEqualTo("/something-async"))
+                .willReturn(aResponse().withStatus(200))
+                .withPostServeAction("webhook", webhook()
+                        .withDelay(2_000)
+                        .withMethod(GET)
+                        .withUrl("http://localhost:" + targetServer.port() + "/callback"))
+        );
+
+        verify(0, postRequestedFor(anyUrl()));
+
+        client.post("/something-async", new StringEntity("", TEXT_PLAIN));
+
+        Thread.sleep(1_000);
+        verify(0, getRequestedFor(urlEqualTo("/callback")));
+        waitForRequestToTargetServer();
+
+        verify(1, getRequestedFor(urlEqualTo("/callback")));
+    }
+
     private void waitForRequestToTargetServer() throws Exception {
         latch.await(2, SECONDS);
         assertThat("Timed out waiting for target server to receive a request",
